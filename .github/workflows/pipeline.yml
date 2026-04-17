@@ -10,7 +10,7 @@ env:
   ACR_SERVER: crsentinelhe.azurecr.io
   ACR_NAME: crsentinelhe
   RESOURCE_GROUP: rg-sentinel-health-engine
-  CONTAINER_APP: sentinel-fe
+  CONTAINER_APP: web-service
 
 # ─────────────────────────────────────────────────────────────
 # Stage 1 — 🏗️ BUILD
