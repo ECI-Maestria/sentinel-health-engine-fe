@@ -1,0 +1,42 @@
+# =============================================================================
+# docker-compose.local.yml — sentinel-health-engine-fe
+#
+# Escenario: Frontend en Docker + Backend corriendo nativamente (go run)
+#
+# El backend Go corre directamente en el host (sin Docker):
+#   cd sentinel-health-engine-be/services/user-service
+#   go run ./cmd/server/...
+#   # El backend escucha en http://localhost:8080
+#
+# host.docker.internal es el hostname especial de Docker Desktop que resuelve
+# a la IP del host desde dentro de un contenedor. Esto permite que el
+# contenedor del frontend alcance al proceso Go que corre en el host.
+#
+# Uso:
+#   docker compose -f docker-compose.local.yml up --build
+#   Abre: http://localhost:3000
+#
+# Para detener:
+#   docker compose -f docker-compose.local.yml down
+# =============================================================================
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Build-time: URL embebida en el bundle JS de Vite
+        VITE_API_URL: http://host.docker.internal:8080
+    ports:
+      - "3000:80"
+    environment:
+      # Runtime: docker-entrypoint.sh reemplaza el placeholder en el JS compilado
+      RUNTIME_API_URL: http://host.docker.internal:8080
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

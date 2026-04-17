@@ -1,0 +1,45 @@
+# =============================================================================
+# docker-compose.yml — sentinel-health-engine-fe
+#
+# Escenario: Frontend en Docker + Backend en Docker (ambos locales)
+#
+# Prerequisito: el backend debe estar corriendo en Docker.
+#   cd sentinel-health-engine-be
+#   docker compose up --build user-service
+#
+# El backend expone el puerto 8080 en el host. host.docker.internal resuelve
+# a la IP del host desde dentro del contenedor Docker (funciona en Docker
+# Desktop para Mac y Windows; en Linux puede requerir --add-host).
+#
+# Uso:
+#   docker compose up --build
+#   Abre: http://localhost:3000
+#
+# Para detener:
+#   docker compose down
+# =============================================================================
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # VITE_API_URL se embebe en el bundle JS durante el build.
+        # Usamos host.docker.internal para alcanzar el backend en Docker del host.
+        VITE_API_URL: http://host.docker.internal:8080
+    ports:
+      - "3000:80"
+    environment:
+      # RUNTIME_API_URL permite que docker-entrypoint.sh sobreescriba la URL
+      # en el bundle JS sin necesidad de rebuild. Ambas variables apuntan al
+      # mismo endpoint para garantizar consistencia.
+      RUNTIME_API_URL: http://host.docker.internal:8080
+    restart: unless-stopped
+    # health check para verificar que Nginx está listo
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

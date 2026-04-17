@@ -1,0 +1,50 @@
+# =============================================================================
+# .dockerignore — sentinel-health-engine-fe
+#
+# Excluye archivos innecesarios del contexto de build de Docker.
+# Un contexto más pequeño = builds más rápidos y menor superficie de ataque.
+# =============================================================================
+
+# Dependencias de Node (se instalan en el contenedor con npm ci)
+node_modules
+
+# Output del build de Vite (se genera en el contenedor)
+dist
+
+# Control de versiones
+.git
+.gitignore
+
+# Documentación (no necesaria en la imagen)
+*.md
+
+# Variables de entorno locales (NUNCA incluir secrets en la imagen)
+# La excepción .env.docker permite tener un archivo de env para docker
+# sin riesgo de incluir el .env local o de producción.
+.env
+.env.local
+.env.*.local
+.env.production
+!.env.docker
+
+# IDEs y editores
+.vscode
+.idea
+*.swp
+*.swo
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Cobertura de tests y reportes
+coverage
+.nyc_output
+
+# Logs
+*.log
+npm-debug.log*
+
+# Archivos temporales
+*.tmp
+*.temp

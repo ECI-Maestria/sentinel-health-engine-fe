@@ -1,0 +1,45 @@
+# =============================================================================
+# docker-compose.azure.yml — sentinel-health-engine-fe
+#
+# Escenario: Frontend en Docker local apuntando al backend desplegado en Azure
+#
+# Útil para:
+#   - Probar el frontend con el backend de producción/staging en Azure.
+#   - Verificar la imagen Docker antes de hacer push al ACR.
+#   - Desarrollo cuando el backend local no está disponible.
+#
+# El backend en Azure ya está desplegado en Azure Container Apps y expone
+# un endpoint HTTPS público con TLS gestionado por Azure.
+#
+# Uso:
+#   docker compose -f docker-compose.azure.yml up --build
+#   Abre: http://localhost:3000
+#
+# Para detener:
+#   docker compose -f docker-compose.azure.yml down
+#
+# NOTA: Las peticiones del frontend correrán en tu máquina local pero
+# se dirigirán al backend en Azure. Asegúrate de que CORS esté configurado
+# en el user-service para permitir http://localhost:3000.
+# =============================================================================
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Build-time: URL del backend en Azure embebida en el bundle JS
+        VITE_API_URL: https://user-service.yellowmeadow-4dfba13a.centralus.azurecontainerapps.io
+    ports:
+      - "3000:80"
+    environment:
+      # Runtime: sobreescribe el placeholder si el build usó el default
+      RUNTIME_API_URL: https://user-service.yellowmeadow-4dfba13a.centralus.azurecontainerapps.io
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
