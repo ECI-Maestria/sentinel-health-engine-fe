@@ -41,7 +41,7 @@ describe('LoginForm', () => {
   it('renders the form with email and password fields', () => {
     renderLoginForm()
     expect(screen.getByLabelText(/correo electrónico/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/contraseña/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/contraseña/i, { selector: 'input' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /iniciar sesión/i })).toBeInTheDocument()
   })
 
@@ -53,7 +53,8 @@ describe('LoginForm', () => {
     await user.click(screen.getByRole('button', { name: /iniciar sesión/i }))
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Correo inválido')
+      const alerts = screen.getAllByRole('alert')
+      expect(alerts.some((a) => a.textContent === 'Correo inválido')).toBe(true)
     })
   })
 
@@ -74,7 +75,7 @@ describe('LoginForm', () => {
     renderLoginForm()
 
     await user.type(screen.getByLabelText(/correo electrónico/i), 'doctor@test.com')
-    await user.type(screen.getByLabelText(/contraseña/i), 'mypassword')
+    await user.type(screen.getByLabelText(/contraseña/i, { selector: 'input' }), 'mypassword')
     await user.click(screen.getByRole('button', { name: /iniciar sesión/i }))
 
     await waitFor(() => {

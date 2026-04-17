@@ -24,13 +24,13 @@ describe('OtpInput', () => {
     render(<OtpInput value="" onChange={onChange} />)
     const inputs = screen.getAllByRole('textbox')
     await user.type(inputs[0], '5')
-    expect(onChange).toHaveBeenCalledWith('5     '.slice(0, 6))
+    expect(onChange).toHaveBeenCalledWith('5')
   })
 
   it('focuses previous input on Backspace when current is empty', async () => {
     const user = userEvent.setup()
     const onChange = vi.fn()
-    render(<OtpInput value="12    " onChange={onChange} />)
+    render(<OtpInput value="12" onChange={onChange} />)
     const inputs = screen.getAllByRole('textbox')
     inputs[2].focus()
     await user.keyboard('{Backspace}')
