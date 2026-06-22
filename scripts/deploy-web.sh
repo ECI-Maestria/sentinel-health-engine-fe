@@ -36,9 +36,9 @@ RG="rg-sentinel-health-engine"
 ACR="crsentinelhe"
 CONTAINER_ENV="cae-sentinel-he"
 APP_NAME="web-service"
-API_URL="https://user-service.yellowmeadow-4dfba13a.centralus.azurecontainerapps.io"
-ANALYTICS_URL="https://analytics-service.yellowmeadow-4dfba13a.centralus.azurecontainerapps.io"
-CALENDAR_URL="https://calendar-service.yellowmeadow-4dfba13a.centralus.azurecontainerapps.io"
+API_URL="https://user-service.delightfulhill-ab8d6db1.centralus.azurecontainerapps.io"
+ANALYTICS_URL="https://analytics-service.delightfulhill-ab8d6db1.centralus.azurecontainerapps.io"
+CALENDAR_URL="https://calendar-service.delightfulhill-ab8d6db1.centralus.azurecontainerapps.io"
 
 # Tag con timestamp para identificar unívocamente cada deploy y facilitar rollback
 TAG=$(date +%Y%m%d%H%M%S)

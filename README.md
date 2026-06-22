@@ -168,9 +168,21 @@ docker compose up --build
 
 ### Backend en Azure
 
+Obtén las URLs actuales del backend con:
+
 ```bash
-# sentinel-health-engine-fe/.env.local
-VITE_API_URL=https://user-service.yellowmeadow-4dfba13a.centralus.azurecontainerapps.io
+for SVC in user-service analytics-service calendar-service; do
+  FQDN=$(az containerapp show --name "$SVC" \
+    --resource-group rg-sentinel-health-engine \
+    --query properties.configuration.ingress.fqdn -o tsv 2>/dev/null)
+  echo "$SVC → https://$FQDN"
+done
+```
+
+Luego edita `.env.local` con esas URLs:
+
+```bash
+VITE_API_URL=https://user-service.<hash>.centralus.azurecontainerapps.io
 VITE_ANALYTICS_URL=https://analytics-service.<hash>.centralus.azurecontainerapps.io
 VITE_CALENDAR_URL=https://calendar-service.<hash>.centralus.azurecontainerapps.io
 ```
@@ -302,59 +314,40 @@ Si cualquier etapa falla, las siguientes se cancelan (`fail-fast: true`).
 
 ## 9. Desplegar en Azure
 
-### Primera vez — crear el Container App del frontend
+### Primera vez — provisionar y desplegar
 
 ```bash
-ACR="crsentinelhe"
-RG="rg-sentinel-health-engine"
-CAE="cae-sentinel-he"
-IMAGE="${ACR}.azurecr.io/sentinel-fe:latest"
+# 1. Actualizar las URLs del backend en los scripts (si el entorno Azure fue recreado)
+OLD_HASH="<hash-anterior>"
+NEW_HASH="<hash-nuevo>"
+sed -i "s/$OLD_HASH/$NEW_HASH/g" .env.azure scripts/provision-web.sh scripts/deploy-web.sh
 
-# Login y build
-az acr login --name "$ACR"
-docker build \
-  --build-arg VITE_API_URL=https://user-service.yellowmeadow-4dfba13a.centralus.azurecontainerapps.io \
-  --build-arg VITE_ANALYTICS_URL=https://analytics-service.<hash>.centralus.azurecontainerapps.io \
-  --build-arg VITE_CALENDAR_URL=https://calendar-service.<hash>.centralus.azurecontainerapps.io \
-  -t "$IMAGE" .
-docker push "$IMAGE"
+# 2. Crear el Container App placeholder (una sola vez)
+bash scripts/provision-web.sh
 
-# Crear Container App
-az containerapp create \
-  --name sentinel-fe \
-  --resource-group "$RG" \
-  --environment "$CAE" \
-  --image "$IMAGE" \
-  --registry-server "${ACR}.azurecr.io" \
-  --registry-username "$ACR" \
-  --registry-password "$(az acr credential show --name $ACR --query passwords[0].value -o tsv)" \
-  --target-port 80 \
-  --ingress external \
-  --min-replicas 1 --max-replicas 2 \
-  --cpu 0.25 --memory 0.5Gi
+# 3. Build y deploy del frontend real
+bash scripts/deploy-web.sh
 ```
 
-### Actualización manual
+> **Git Bash en Windows:** si `docker-entrypoint.sh` falla con
+> `no such file or directory`, el archivo tiene saltos de línea Windows (CRLF).
+> Corrígelo con:
+> ```bash
+> sed -i 's/\r//' docker-entrypoint.sh
+> ```
+> Luego vuelve a correr `bash scripts/deploy-web.sh`.
+
+### Actualización tras cambios de código
 
 ```bash
-TAG=$(git rev-parse --short HEAD)
-IMAGE="crsentinelhe.azurecr.io/sentinel-fe:${TAG}"
-
-az acr login --name crsentinelhe
-docker build -t "$IMAGE" .
-docker push "$IMAGE"
-
-az containerapp update \
-  --name sentinel-fe \
-  --resource-group rg-sentinel-health-engine \
-  --image "$IMAGE"
+bash scripts/deploy-web.sh
 ```
 
 ### Obtener la URL pública
 
 ```bash
 az containerapp show \
-  --name sentinel-fe \
+  --name web-service \
   --resource-group rg-sentinel-health-engine \
   --query properties.configuration.ingress.fqdn -o tsv
 ```

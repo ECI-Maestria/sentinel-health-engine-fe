@@ -42,7 +42,7 @@ set -euo pipefail
 RG="rg-sentinel-health-engine"
 ACR="crsentinelhe"
 CONTAINER_ENV="cae-sentinel-he"
-API_URL="https://user-service.yellowmeadow-4dfba13a.centralus.azurecontainerapps.io"
+API_URL="https://user-service.delightfulhill-ab8d6db1.centralus.azurecontainerapps.io"
 
 echo "============================================================"
 echo "  Provisioning web-service Container App (one-time setup)"
